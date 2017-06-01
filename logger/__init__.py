@@ -1,1 +1,1 @@
-from log import make_logger
+from .log import make_logger
