@@ -8,7 +8,7 @@ log = make_logger('autoencoder')
 
 
 def build_autoencoder(input_dim, layers_dim=[100, 10, 10],
-                      activations=['relu', 'sigmoid'],
+                      activations=['tanh', 'tanh'],
                       inits=['glorot_uniform', 'glorot_normal'],
                       optimizer='adadelta',
                       drop=0.1,
