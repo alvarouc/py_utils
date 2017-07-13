@@ -10,9 +10,8 @@ log = make_logger('autoencoder')
 def build_autoencoder(input_dim, layers_dim=[100, 10, 10],
                       activations=['tanh', 'tanh'],
                       inits=['glorot_uniform', 'glorot_normal'],
-                      optimizer='adadelta',
-                      drop=0.1,
-                      l2=1e-5,
+                      optimizer='adam',
+                      drop=0.1, l2=1e-5,
                       loss='mse'):
 
     input_row = Input(shape=(input_dim,))
@@ -53,7 +52,7 @@ def build_autoencoder(input_dim, layers_dim=[100, 10, 10],
     return autoencoder, encoder
 
 
-def run_ae(X, epochs=100, **kwargs):
+def run_ae(X, epochs=100, verbose=0,  **kwargs):
     log.info('Standarize')
     if X.dtype == 'bool':
         log.info('Boolean data detected')
@@ -77,7 +76,8 @@ def run_ae(X, epochs=100, **kwargs):
     log.info('Training Autoencoder')
     ae, encoder = build_autoencoder(Xs.shape[1], **ae_args)
     log.info(ae.summary())
-    ae.fit(Xs, Xs, batch_size=128, epochs=epochs, shuffle=False)
+    ae.fit(Xs, Xs, batch_size=128, epochs=epochs,
+           shuffle=True, verbose=verbose)
     log.info('Encoding')
     Xp = encoder.predict(Xs, verbose=False)
     log.info('Computing reconstruction loss')
