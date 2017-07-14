@@ -32,7 +32,8 @@ def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
                             kernel_initializer=inits[0])(encoded)
 
     encoder = Model(input_row, encoded)
-
+    if ngpu > 1:
+        encoder = make_parallel(encoder, ngpu)
     for n, layer_dim in enumerate(reversed(layers_dim[:-1])):
         if n == 0:
             decoded = Dense(layer_dim, activation=activations[0],
