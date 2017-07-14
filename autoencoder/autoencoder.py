@@ -56,7 +56,7 @@ def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
     return autoencoder, encoder
 
 
-def run_ae(X, epochs=100, verbose=0,  **kwargs):
+def run_ae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
     log.info('Standarize')
     if X.dtype == 'bool':
         log.info('Boolean data detected')
@@ -80,7 +80,7 @@ def run_ae(X, epochs=100, verbose=0,  **kwargs):
     log.info('Training Autoencoder')
     ae, encoder = build_autoencoder(Xs.shape[1], **ae_args)
     log.info(ae.summary())
-    ae.fit(Xs, Xs, batch_size=128 * 2, epochs=epochs,
+    ae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
            shuffle=True, verbose=verbose)
     log.info('Encoding')
     Xp = encoder.predict(Xs, verbose=False)
