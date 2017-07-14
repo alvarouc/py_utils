@@ -21,35 +21,41 @@ def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
         if n == 0:
             encoded = Dense(layer_dim, activation=activations[0],
                             kernel_initializer=inits[0])(input_row)
-            encoded = Dropout(drop)(encoded)
+            if drop > 0:
+                encoded = Dropout(drop)(encoded)
         elif n < (len(layers_dim) - 1):
             encoded = Dense(layer_dim, activation=activations[0],
                             kernel_initializer=inits[0])(encoded)
-            encoded = Dropout(drop)(encoded)
+            if drop > 0:
+                encoded = Dropout(drop)(encoded)
         else:
             encoded = Dense(layer_dim, activation=activations[0],
                             activity_regularizer=regularizers.l2(l2),
                             kernel_initializer=inits[0])(encoded)
 
     encoder = Model(input_row, encoded)
-    if ngpu > 1:
-        encoder = make_parallel(encoder, ngpu)
+    # if ngpu > 1:
+    #  encoder = make_parallel(encoder, ngpu)
     for n, layer_dim in enumerate(reversed(layers_dim[:-1])):
         if n == 0:
             decoded = Dense(layer_dim, activation=activations[0],
                             kernel_initializer=inits[0])(encoded)
-            decoded = Dropout(drop)(decoded)
+            if drop > 0:
+                decoded = Dropout(drop)(decoded)
         else:
             decoded = Dense(layer_dim, activation=activations[0],
                             kernel_regularizer=regularizers.l2(l2),
                             kernel_initializer=inits[0])(decoded)
-            decoded = Dropout(drop)(decoded)
+            if drop > 0:
+                decoded = Dropout(drop)(decoded)
 
     decoded = Dense(input_dim, activation=activations[1],
                     kernel_regularizer=regularizers.l2(l2),
                     kernel_initializer=inits[1])(decoded)
 
     autoencoder = Model(input_row, decoded)
+    log.info(autoencoder.summary())
+
     if ngpu > 1:
         autoencoder = make_parallel(autoencoder, ngpu)
     autoencoder.compile(optimizer=optimizer, loss=loss)
@@ -79,7 +85,6 @@ def run_ae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
     ae_args.update(kwargs)
     log.info('Training Autoencoder')
     ae, encoder = build_autoencoder(Xs.shape[1], **ae_args)
-    log.info(ae.summary())
     ae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
            shuffle=True, verbose=verbose)
     log.info('Encoding')
