@@ -3,7 +3,7 @@ from keras.models import Model
 from keras import regularizers
 from logger import make_logger
 from multigpu import make_parallel
-# from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard
 
 log = make_logger('autoencoder')
 
@@ -86,7 +86,8 @@ def run_ae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
     log.info('Training Autoencoder')
     ae, encoder = build_autoencoder(Xs.shape[1], **ae_args)
     ae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
-           shuffle=True, verbose=verbose)
+           shuffle=True, verbose=verbose,
+           callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
     log.info('Encoding')
     Xp = encoder.predict(Xs, verbose=False)
     log.info('Computing reconstruction loss')
