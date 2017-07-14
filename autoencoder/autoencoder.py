@@ -2,12 +2,13 @@ from keras.layers import Input, Dense, Dropout
 from keras.models import Model
 from keras import regularizers
 from logger import make_logger
+from multigpu import make_parallel
 # from keras.callbacks import TensorBoard
 
 log = make_logger('autoencoder')
 
 
-def build_autoencoder(input_dim, layers_dim=[100, 10, 10],
+def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
                       activations=['tanh', 'tanh'],
                       inits=['glorot_uniform', 'glorot_normal'],
                       optimizer='adam',
@@ -48,6 +49,8 @@ def build_autoencoder(input_dim, layers_dim=[100, 10, 10],
                     kernel_initializer=inits[1])(decoded)
 
     autoencoder = Model(input_row, decoded)
+    if ngpu > 1:
+        autoencoder = make_parallel(autoencoder, ngpu)
     autoencoder.compile(optimizer=optimizer, loss=loss)
     return autoencoder, encoder
 
