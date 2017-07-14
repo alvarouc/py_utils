@@ -6,5 +6,5 @@ setup(name='py_utils',
       author='Alvaro Ulloa',
       author_email='aeulloacerna@geisinger.edu',
       url='https://github.com/alvarouc/py_utils',
-      packages=['logger', 'autoencoder', 'tsne'],
+      packages=['logger', 'autoencoder', 'tsne', 'multigpu'],
       )
