@@ -132,7 +132,8 @@ def standard(X):
     return Xs, loss
 
 
-def run_ae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
+def run_ae(X, epochs=100, batch_size=128, verbose=0,
+           compute_error=False, **kwargs):
 
     Xs, loss = standard(X)
     # AE
@@ -147,16 +148,19 @@ def run_ae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
     ae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
            shuffle=True, verbose=verbose,
            callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
-    log.debug('Encoding')
     Xp = encoder.predict(Xs, verbose=False)
-    log.debug('Computing reconstruction loss')
-    X2 = ae.predict(Xs, verbose=False)
-    error = ((X2 - Xs)**2).mean(axis=0)
-    log.info('Done. Loss %s', ae.evaluate(Xs, Xs, verbose=False))
-    return Xp, error, encoder
+
+    if compute_error:
+        X2 = ae.predict(Xs, verbose=False)
+        error = ((X2 - Xs)**2).mean(axis=0)
+        log.info('Loss %.2e', ae.evaluate(Xs, Xs, verbose=verbose))
+        return Xp, error, encoder
+    else:
+        return Xp
 
 
-def run_vae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
+def run_vae(X, epochs=100, batch_size=128, verbose=0,
+            compute_error=False, **kwargs):
 
     remove = X.shape[0] % batch_size
     if remove != 0:
@@ -177,11 +181,13 @@ def run_vae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
     vae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
             shuffle=True, verbose=verbose,
             callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
-    log.debug('Encoding')
     Xp = encoder.predict(Xs, verbose=False, batch_size=batch_size)
-    log.debug('Computing reconstruction loss')
-    X2 = vae.predict(Xs, verbose=False, batch_size=batch_size)
-    error = ((X2 - Xs)**2).mean(axis=0)
-    log.info('Done. Loss %s', vae.evaluate(
-        Xs, Xs, batch_size=batch_size, verbose=False))
-    return Xp, error, encoder
+
+    if compute_error:
+        X2 = vae.predict(Xs, verbose=False, batch_size=batch_size)
+        error = ((X2 - Xs)**2).mean(axis=0)
+        log.info('Done. Loss %s', vae.evaluate(
+            Xs, Xs, batch_size=batch_size, verbose=False))
+        return Xp, error, encoder
+    else:
+        return Xp
