@@ -33,14 +33,22 @@ def make_logger(name='', path='/tmp/', level='DEBUG'):
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
     fh = logging.FileHandler(path + name + '.log')
-    fh.setLevel(logging.INFO)
+
     fh.setFormatter(formatter)
     ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
     ch.setFormatter(formatter)
     # add the handlers to the logger
+    if level == 'DEBUG':
+        logger.setLevel(logging.DEBUG)
+        fh.setLevel(logging.DEBUG)
+        ch.setLevel(logging.DEBUG)
+
+    elif level == 'INFO':
+        logger.setLevel(logging.INFO)
+        ch.setLevel(logging.INFO)
+        fh.setLevel(logging.INFO)
+
     logger.addHandler(fh)
     logger.addHandler(ch)
 
