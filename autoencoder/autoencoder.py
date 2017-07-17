@@ -8,7 +8,7 @@ from keras.engine.topology import Layer
 from logger import make_logger
 from keras.callbacks import TensorBoard
 
-log = make_logger('autoencoder')
+log = make_logger('autoencoder', level='INFO')
 
 
 def build_vae(input_dim, ngpu=1, layers_dim=[100, 10, 10],
@@ -142,7 +142,7 @@ def run_ae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
                'activations': ['tanh', 'sigmoid'], 'l2': 0,
                'optimizer': 'adagrad'}
     ae_args.update(kwargs)
-    log.info('Training Autoencoder')
+    log.debug('Training Autoencoder')
     ae, encoder = build_autoencoder(Xs.shape[1], **ae_args)
     ae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
            shuffle=True, verbose=verbose,
@@ -172,7 +172,7 @@ def run_vae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
                 'optimizer': 'adagrad',
                 'batch_size': batch_size}
     vae_args.update(kwargs)
-    log.info('Training Variational Autoencoder')
+    log.debug('Training Variational Autoencoder')
     vae, encoder = build_vae(Xs.shape[1], **vae_args)
     vae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
             shuffle=True, verbose=verbose,
