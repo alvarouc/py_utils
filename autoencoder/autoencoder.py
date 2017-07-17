@@ -158,9 +158,15 @@ def run_ae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
 
 def run_vae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
 
+    remove = X.shape[0] % batch_size
+    if remove != 0:
+        log.warning(
+            'Batch size ({}) is not multiple of the number of samples ({}), Ignoring last {} samples'.format(batch_size, X.shape[0], remove))
+        X = X[:-remove, :]
+
     Xs, loss = standard(X)
     # VAE
-    vae_args = {'layers_dim': [100, 5],
+    vae_args = {'layers_dim': [100, 2],
                 'inits': ['glorot_normal', 'glorot_uniform'],
                 'activations': ['tanh', 'sigmoid'], 'l2': 0,
                 'optimizer': 'adagrad',
@@ -176,5 +182,5 @@ def run_vae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
     log.debug('Computing reconstruction loss')
     X2 = vae.predict(Xs, verbose=verbose, batch_size=batch_size)
     error = ((X2 - Xs)**2).mean(axis=0)
-    log.info('Done. Loss %s', vae.evaluate(Xs, Xs, batch_size=100))
+    log.info('Done. Loss %s', vae.evaluate(Xs, Xs, batch_size=batch_size))
     return Xp, error, encoder
