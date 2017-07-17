@@ -1,10 +1,11 @@
-from keras.layers import Input, Dense, Dropout
+from keras.layers import Input, Dense, Dropout, Lambda
 from keras.models import Model
 from keras import regularizers
+from keras import backend as K
 from keras import metrics
+from keras.engine.topology import Layer
 
 from logger import make_logger
-from multigpu import make_parallel
 from keras.callbacks import TensorBoard
 
 log = make_logger('autoencoder')
@@ -25,8 +26,8 @@ def build_vae(input_dim, ngpu=1, layers_dim=[100, 10, 10],
 
     def sampling(args):
         z_mean, z_log_var = args
-        epsilon = K.random_normal(shape=(batch_size, layers_dim[-1]), mean=0.,
-                                  stddev=epsilon_std)
+        epsilon = K.random_normal(shape=(batch_size, layers_dim[-1]),
+                                  mean=0., stddev=epsilon_std)
         return z_mean + K.exp(z_log_var / 2) * epsilon
 
     z = Lambda(sampling)([z_mean, z_log_var])
@@ -91,8 +92,6 @@ def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
                             kernel_initializer=inits[0])(encoded)
 
     encoder = Model(input_row, encoded)
-    # if ngpu > 1:
-    #  encoder = make_parallel(encoder, ngpu)
     for n, layer_dim in enumerate(reversed(layers_dim[:-1])):
         if n == 0:
             decoded = Dense(layer_dim, activation=activations[0],
@@ -113,8 +112,6 @@ def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
     autoencoder = Model(input_row, decoded)
     log.debug(autoencoder.summary())
 
-    if ngpu > 1:
-        autoencoder = make_parallel(autoencoder, ngpu)
     autoencoder.compile(optimizer=optimizer, loss=loss)
     return autoencoder, encoder
 
@@ -166,17 +163,18 @@ def run_vae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
     vae_args = {'layers_dim': [100, 5],
                 'inits': ['glorot_normal', 'glorot_uniform'],
                 'activations': ['tanh', 'sigmoid'], 'l2': 0,
-                'optimizer': 'adagrad'}
+                'optimizer': 'adagrad',
+                'batch_size': batch_size}
     vae_args.update(kwargs)
     log.info('Training Variational Autoencoder')
-    vae, encoder = build_autoencoder(Xs.shape[1], **vae_args)
+    vae, encoder = build_vae(Xs.shape[1], **vae_args)
     vae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
             shuffle=True, verbose=verbose,
             callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
     log.debug('Encoding')
-    Xp = encoder.predict(Xs, verbose=False)
+    Xp = encoder.predict(Xs, verbose=False, batch_size=batch_size)
     log.debug('Computing reconstruction loss')
-    X2 = vae.predict(Xs, verbose=verbose)
+    X2 = vae.predict(Xs, verbose=verbose, batch_size=batch_size)
     error = ((X2 - Xs)**2).mean(axis=0)
-    log.info('Done. Loss %s', vae.evaluate(Xs, Xs))
+    log.info('Done. Loss %s', vae.evaluate(Xs, Xs, batch_size=100))
     return Xp, error, encoder
