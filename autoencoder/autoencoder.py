@@ -8,15 +8,15 @@ from keras.callbacks import TensorBoard
 import warnings
 
 
-def build_vae(input_dim, ngpu=1, layers_dim=[100, 10, 10],
+def build_vae(input_dim, ngpu=1, layers_dim=[100, 10],
               activations=['relu', 'sigmoid'],
               inits=['glorot_uniform', 'glorot_normal'],
-              optimizer='adam', batch_size=512,
-              drop=0.1, l2=1e-5,
-              loss='mse', epsilon_std=1):
+              optimizer='rmsprop', batch_size=512,
+              epsilon_std=1):
 
     x = Input(batch_shape=(batch_size, input_dim))
-    h = Dense(layers_dim[0], activation='relu')(x)
+    h = Dense(layers_dim[0], activation=activations[0],
+              kernel_initializer=inits[0])(x)
 
     z_mean = Dense(layers_dim[-1])(h)
     z_log_var = Dense(layers_dim[-1])(h)
@@ -29,8 +29,10 @@ def build_vae(input_dim, ngpu=1, layers_dim=[100, 10, 10],
 
     z = Lambda(sampling)([z_mean, z_log_var])
 
-    decoder_h = Dense(layers_dim[0], activation=activations[0])
-    decoder_mean = Dense(input_dim, activation=activations[1])
+    decoder_h = Dense(layers_dim[0], activation=activations[0],
+                      kernel_initializer=inits[0])
+    decoder_mean = Dense(input_dim, activation=activations[1],
+                         kernel_initializer=inits[1])
     h_decoded = decoder_h(z)
     x_decoded_mean = decoder_mean(h_decoded)
 
@@ -57,13 +59,13 @@ def build_vae(input_dim, ngpu=1, layers_dim=[100, 10, 10],
 
     y = CustomVariationalLayer()([x, x_decoded_mean])
     vae = Model(x, y)
-    vae.compile(optimizer='rmsprop', loss=None)
+    vae.compile(optimizer=optimizer, loss=None)
     encoder = Model(x, z_mean)
     return vae, encoder
 
 
 def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
-                      activations=['tanh', 'tanh'],
+                      activations=['tanh', 'sigmoid'],
                       inits=['glorot_uniform', 'glorot_normal'],
                       optimizer='adam',
                       drop=0.1, l2=1e-5,
@@ -128,15 +130,9 @@ def run_ae(X, epochs=100, batch_size=128, verbose=False,
 
     Xs, loss = standard(X)
     # AE
-    ae_args = {'layers_dim': [100, 50,
-                              min(max(X.shape[1] // 10, 5), 25)],
-               'inits': ['glorot_normal', 'glorot_uniform'],
-               'activations': ['tanh', 'sigmoid'], 'l2': 0,
-               'optimizer': 'adagrad'}
-    ae_args.update(kwargs)
     if verbose:
         print('Training Autoencoder')
-    ae, encoder = build_autoencoder(Xs.shape[1], **ae_args)
+    ae, encoder = build_autoencoder(Xs.shape[1], **kwargs)
     ae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
            shuffle=True, verbose=verbose,
            callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
@@ -162,15 +158,10 @@ def run_vae(X, epochs=100, batch_size=128, verbose=False,
             'Batch size ({}) is not multiple of the number of samples ({}), Ignoring last {} samples'.format(batch_size, X.shape[0], remove))
         X = X[:-remove, :]
 
-    Xs, loss = standard(X)
+    Xs, _ = standard(X)
+    kwargs['batch_size'] = batch_size
     # VAE
-    vae_args = {'layers_dim': [100, 2],
-                'inits': ['glorot_normal', 'glorot_uniform'],
-                'activations': ['relu', 'sigmoid'],
-                'optimizer': 'adagrad',
-                'batch_size': batch_size}
-    vae_args.update(kwargs)
-    vae, encoder = build_vae(Xs.shape[1], **vae_args)
+    vae, encoder = build_vae(Xs.shape[1], **kwargs)
     vae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
             shuffle=True, verbose=verbose,
             callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
@@ -179,8 +170,9 @@ def run_vae(X, epochs=100, batch_size=128, verbose=False,
     if compute_error:
         X2 = vae.predict(Xs, verbose=False, batch_size=batch_size)
         error = ((X2 - Xs)**2).mean(axis=0)
-        print('Done. Loss {:.2e}', vae.evaluate(
-            Xs, Xs, batch_size=batch_size, verbose=False))
+        if verbose:
+            print('Done. Loss {:.2e}', vae.evaluate(
+                Xs, Xs, batch_size=batch_size, verbose=False))
         return Xp, error, encoder
     else:
         return Xp
