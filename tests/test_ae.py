@@ -7,7 +7,7 @@ import sys
 sys.path.append("../")
 
 from autoencoder import run_ae
-print(sys.path)
+
 X, y = make_blobs(n_samples=1000, n_features=30, centers=3,
                   random_state=1988)
 

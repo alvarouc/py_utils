@@ -153,7 +153,7 @@ def run_ae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
     log.info('Encoding')
     Xp = encoder.predict(Xs, verbose=False)
     log.info('Computing reconstruction loss')
-    X2 = ae.predict(Xs)
+    X2 = ae.predict(Xs, verbose=verbose)
     error = ((X2 - Xs)**2).mean(axis=0)
     log.info('Done. Loss %s', ae.evaluate(Xs, Xs))
     return Xp, error, encoder
@@ -176,7 +176,7 @@ def run_vae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
     log.info('Encoding')
     Xp = encoder.predict(Xs, verbose=False)
     log.info('Computing reconstruction loss')
-    X2 = vae.predict(Xs)
+    X2 = vae.predict(Xs, verbose=verbose)
     error = ((X2 - Xs)**2).mean(axis=0)
     log.info('Done. Loss %s', vae.evaluate(Xs, Xs))
     return Xp, error, encoder
