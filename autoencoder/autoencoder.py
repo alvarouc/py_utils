@@ -180,7 +180,8 @@ def run_vae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
     log.debug('Encoding')
     Xp = encoder.predict(Xs, verbose=False, batch_size=batch_size)
     log.debug('Computing reconstruction loss')
-    X2 = vae.predict(Xs, verbose=verbose, batch_size=batch_size)
+    X2 = vae.predict(Xs, verbose=False, batch_size=batch_size)
     error = ((X2 - Xs)**2).mean(axis=0)
-    log.info('Done. Loss %s', vae.evaluate(Xs, Xs, batch_size=batch_size))
+    log.info('Done. Loss %s', vae.evaluate(
+        Xs, Xs, batch_size=batch_size, verbose=0))
     return Xp, error, encoder
