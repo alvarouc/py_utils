@@ -29,7 +29,7 @@ class ProgressConsoleHandler(logging.StreamHandler):
             self.handleError(record)
 
 
-def make_logger(name='', path='/tmp/'):
+def make_logger(name='', path='/tmp/', level='DEBUG'):
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(name)
