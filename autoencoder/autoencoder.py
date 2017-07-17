@@ -111,7 +111,7 @@ def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
                     kernel_initializer=inits[1])(decoded)
 
     autoencoder = Model(input_row, decoded)
-    log.info(autoencoder.summary())
+    log.debug(autoencoder.summary())
 
     if ngpu > 1:
         autoencoder = make_parallel(autoencoder, ngpu)
@@ -120,9 +120,9 @@ def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
 
 
 def standard(X):
-    log.info('Standarize')
+    log.debug('Standarize')
     if X.dtype == 'bool':
-        log.info('Boolean data detected')
+        log.debug('Boolean data detected')
         loss = 'binary_crossentropy'
         Xs = X
     else:
@@ -131,7 +131,7 @@ def standard(X):
         ptp[ptp == 0] = 1
         Xs = (X - X.min(axis=0)) / ptp
         loss = 'mse'
-        log.info('Done. AE Loss: {}'.format(loss))
+        log.debug('Done. AE Loss: {}'.format(loss))
     return Xs, loss
 
 
@@ -150,10 +150,10 @@ def run_ae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
     ae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
            shuffle=True, verbose=verbose,
            callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
-    log.info('Encoding')
+    log.debug('Encoding')
     Xp = encoder.predict(Xs, verbose=False)
-    log.info('Computing reconstruction loss')
-    X2 = ae.predict(Xs, verbose=verbose)
+    log.debug('Computing reconstruction loss')
+    X2 = ae.predict(Xs, verbose=False)
     error = ((X2 - Xs)**2).mean(axis=0)
     log.info('Done. Loss %s', ae.evaluate(Xs, Xs))
     return Xp, error, encoder
@@ -173,9 +173,9 @@ def run_vae(X, epochs=100, batch_size=128, verbose=0,  **kwargs):
     vae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
             shuffle=True, verbose=verbose,
             callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
-    log.info('Encoding')
+    log.debug('Encoding')
     Xp = encoder.predict(Xs, verbose=False)
-    log.info('Computing reconstruction loss')
+    log.debug('Computing reconstruction loss')
     X2 = vae.predict(Xs, verbose=verbose)
     error = ((X2 - Xs)**2).mean(axis=0)
     log.info('Done. Loss %s', vae.evaluate(Xs, Xs))
