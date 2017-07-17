@@ -12,7 +12,7 @@ def build_vae(input_dim, ngpu=1, layers_dim=[100, 10],
               activations=['relu', 'sigmoid'],
               inits=['glorot_uniform', 'glorot_normal'],
               optimizer='adam', batch_size=512,
-              epsilon_std=1):
+              epsilon_std=0.1):
 
     x = Input(batch_shape=(batch_size, input_dim))
     h = Dense(layers_dim[0], activation=activations[0],
