@@ -9,28 +9,30 @@ import numpy as np
 import warnings
 
 
-def build_vae(input_dim, ngpu=1, layers_dim=[100, 10],
+def build_vae(input_dim, ngpu=1,
+              lattent_dim=100,
+              encoding_dim=10,
               activations=['relu', 'sigmoid'],
               inits=['glorot_uniform', 'glorot_normal'],
               optimizer='adam', batch_size=512,
               epsilon_std=0.1):
 
     x = Input(batch_shape=(batch_size, input_dim))
-    h = Dense(layers_dim[0], activation=activations[0],
+    h = Dense(lattent_dim, activation=activations[0],
               kernel_initializer=inits[0])(x)
 
-    z_mean = Dense(layers_dim[-1])(h)
-    z_log_var = Dense(layers_dim[-1])(h)
+    z_mean = Dense(encoding_dim)(h)
+    z_log_var = Dense(encoding_dim)(h)
 
     def sampling(args):
         z_mean, z_log_var = args
-        epsilon = K.random_normal(shape=(batch_size, layers_dim[-1]),
+        epsilon = K.random_normal(shape=(batch_size, encoding_dim),
                                   mean=0., stddev=epsilon_std)
         return z_mean + K.exp(z_log_var / 2) * epsilon
 
     z = Lambda(sampling)([z_mean, z_log_var])
 
-    decoder_h = Dense(layers_dim[0], activation=activations[0],
+    decoder_h = Dense(lattent_dim, activation=activations[0],
                       kernel_initializer=inits[0])
     decoder_mean = Dense(input_dim, activation=activations[1],
                          kernel_initializer=inits[1])
@@ -156,7 +158,8 @@ def run_vae(X, epochs=100, batch_size=128, verbose=False,
     remove = X.shape[0] % batch_size
     if remove != 0:
         warnings.warn(
-            'Batch size ({}) is not multiple of the number of samples ({}), Ignoring last {} samples'.format(batch_size, X.shape[0], remove))
+            'Batch size ({}) is not multiple of the number of samples ({}),\
+Ignoring last {} samples'.format(batch_size, X.shape[0], remove))
         X = X[:-remove, :]
 
     Xs, _ = standard(X)

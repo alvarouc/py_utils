@@ -14,7 +14,8 @@ X, y = make_blobs(n_samples=1000, n_features=30, centers=3,
 
 @pytest.mark.medium
 def test_vae():
-    X2 = run_vae(X, verbose=0, layers_dim=[20, 2],
+    X2 = run_vae(X, verbose=0, lattent_dim=20,
+                 encoding_dim=2,
                  batch_size=100)
     si = silhouette_score(X2, y)
     plt.figure()
@@ -25,7 +26,8 @@ def test_vae():
 
 
 def test_vae_2():
-    X2 = run_vae(X, verbose=0, layers_dim=[20, 20,  2],
+    X2 = run_vae(X, verbose=0, lattent_dim=20,
+                 encoding_dim=2,
                  batch_size=128)
     si = silhouette_score(X2, y[:X2.shape[0]])
     plt.figure()
