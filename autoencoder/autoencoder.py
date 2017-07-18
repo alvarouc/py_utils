@@ -162,6 +162,8 @@ def run_vae(X, epochs=100, batch_size=128, verbose=False,
     kwargs['batch_size'] = batch_size
     # VAE
     vae, encoder = build_vae(Xs.shape[1], **kwargs)
+    if verbose:
+        print(vae.summary())
     vae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
             shuffle=True, verbose=verbose,
             callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
@@ -171,8 +173,8 @@ def run_vae(X, epochs=100, batch_size=128, verbose=False,
         X2 = vae.predict(Xs, verbose=False, batch_size=batch_size)
         error = ((X2 - Xs)**2).mean(axis=0)
         if verbose:
-            print('Done. Loss {:.2e}', vae.evaluate(
-                Xs, Xs, batch_size=batch_size, verbose=False))
+            print('Done. Loss {:.2e}'.format(vae.evaluate(
+                Xs, Xs, batch_size=batch_size, verbose=False)))
         return Xp, error, encoder
     else:
         return Xp
