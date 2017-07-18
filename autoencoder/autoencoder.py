@@ -5,6 +5,7 @@ from keras import backend as K
 from keras import metrics
 from keras.engine.topology import Layer
 from keras.callbacks import TensorBoard
+import numpy as np
 import warnings
 
 
@@ -173,8 +174,7 @@ def run_vae(X, epochs=100, batch_size=128, verbose=False,
         X2 = vae.predict(Xs, verbose=False, batch_size=batch_size)
         error = ((X2 - Xs)**2).mean(axis=0)
         if verbose:
-            print('Done. Loss {:.2e}'.format(vae.evaluate(
-                Xs, Xs, batch_size=batch_size, verbose=False)))
+            print('MSE {:.2e}'.format(np.mean(error)))
         return Xp, error, encoder
     else:
         return Xp
