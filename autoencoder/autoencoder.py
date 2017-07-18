@@ -10,7 +10,7 @@ import warnings
 
 
 def build_vae(input_dim, ngpu=1,
-              lattent_dim=100,
+              latent_dim=100,
               encoding_dim=10,
               activations=['relu', 'sigmoid'],
               inits=['glorot_uniform', 'glorot_normal'],
@@ -18,7 +18,7 @@ def build_vae(input_dim, ngpu=1,
               epsilon_std=0.1):
 
     x = Input(batch_shape=(batch_size, input_dim))
-    h = Dense(lattent_dim, activation=activations[0],
+    h = Dense(latent_dim, activation=activations[0],
               kernel_initializer=inits[0])(x)
 
     z_mean = Dense(encoding_dim)(h)
@@ -32,7 +32,7 @@ def build_vae(input_dim, ngpu=1,
 
     z = Lambda(sampling)([z_mean, z_log_var])
 
-    decoder_h = Dense(lattent_dim, activation=activations[0],
+    decoder_h = Dense(latent_dim, activation=activations[0],
                       kernel_initializer=inits[0])
     decoder_mean = Dense(input_dim, activation=activations[1],
                          kernel_initializer=inits[1])
@@ -64,7 +64,14 @@ def build_vae(input_dim, ngpu=1,
     vae = Model(x, y)
     vae.compile(optimizer=optimizer, loss=None)
     encoder = Model(x, z_mean)
-    return vae, encoder
+
+    # build a generator that can sample from the learned distribution
+    decoder_input = Input(shape=(encoding_dim,))
+    _h_decoded = decoder_h(decoder_input)
+    _x_decoded_mean = decoder_mean(_h_decoded)
+    decoder = Model(decoder_input, _x_decoded_mean)
+
+    return vae, encoder, decoder
 
 
 def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
@@ -165,7 +172,7 @@ Ignoring last {} samples'.format(batch_size, X.shape[0], remove))
     Xs, _ = standard(X)
     kwargs['batch_size'] = batch_size
     # VAE
-    vae, encoder = build_vae(Xs.shape[1], **kwargs)
+    vae, encoder, decoder = build_vae(Xs.shape[1], **kwargs)
     if verbose:
         print(vae.summary())
     vae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
@@ -174,7 +181,8 @@ Ignoring last {} samples'.format(batch_size, X.shape[0], remove))
     Xp = encoder.predict(Xs, verbose=False, batch_size=batch_size)
 
     if compute_error:
-        X2 = vae.predict(Xs, verbose=False, batch_size=batch_size)
+        X_latent = encoder.predict(Xs, verbose=False, batch_size=batch_size)
+        X2 = decoder.predict(X_latent, verbose=False, batch_size=batch_size)
         error = ((X2 - Xs)**2).mean(axis=0)
         if verbose:
             print('MSE {:.2e}'.format(np.mean(error)))
