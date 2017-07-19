@@ -186,6 +186,6 @@ Ignoring last {} samples'.format(batch_size, X.shape[0], remove))
         error = ((X2 - Xs)**2).mean(axis=0)
         if verbose:
             print('MSE {:.2e}'.format(np.mean(error)))
-        return Xp, error, encoder
+        return Xp, error, encoder, decoder
     else:
         return Xp
