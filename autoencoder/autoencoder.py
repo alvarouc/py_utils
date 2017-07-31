@@ -119,7 +119,13 @@ def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
 
     autoencoder = Model(input_row, decoded)
     autoencoder.compile(optimizer=optimizer, loss=loss)
-    return autoencoder, encoder
+
+    encoded_input = Input(shape=(layers_dim[-1],))
+    decoder_layer = autoencoder.layers[-1]
+    # create the decoder model
+    decoder = Model(encoded_input, decoder_layer(encoded_input))
+
+    return autoencoder, encoder, decoder
 
 
 def standard(X):
@@ -142,7 +148,7 @@ def run_ae(X, epochs=100, batch_size=128, verbose=False,
     # AE
     if verbose:
         print('Training Autoencoder')
-    ae, encoder = build_autoencoder(Xs.shape[1], **kwargs)
+    ae, encoder, decoder = build_autoencoder(Xs.shape[1], **kwargs)
     ae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
            shuffle=True, verbose=verbose,
            callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
