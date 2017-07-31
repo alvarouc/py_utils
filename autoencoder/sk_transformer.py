@@ -43,7 +43,8 @@ class AutoEncoder(BaseEncoder):
         if remove != 0:
             warnings.warn(
                 'Batch size ({}) is not multiple of the number of samples ({}),\
-                Ignoring last {} samples'.format(self.batch_size, Xs.shape[0],
+                Ignoring last {} samples'.format(self.batch_size,
+                                                 self.Xs.shape[0],
                                                  remove))
             self.Xs = self.Xs[:-remove, :]
 
