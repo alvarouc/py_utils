@@ -118,14 +118,10 @@ def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
                     kernel_initializer=inits[1])(decoded)
 
     autoencoder = Model(input_row, decoded)
+
     autoencoder.compile(optimizer=optimizer, loss=loss)
 
-    encoded_input = Input(shape=(layers_dim[-1],))
-    decoder_layer = autoencoder.layers[-1]
-    # create the decoder model
-    decoder = Model(encoded_input, decoder_layer(encoded_input))
-
-    return autoencoder, encoder, decoder
+    return autoencoder, encoder, None
 
 
 def standard(X):
