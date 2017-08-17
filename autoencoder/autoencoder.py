@@ -4,7 +4,7 @@ from keras import regularizers
 from keras import backend as K
 from keras import metrics
 from keras.engine.topology import Layer
-from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard, EarlyStopping
 import numpy as np
 import warnings
 
@@ -145,9 +145,12 @@ def run_ae(X, epochs=100, batch_size=128, verbose=False,
     if verbose:
         print('Training Autoencoder')
     ae, encoder, decoder = build_autoencoder(Xs.shape[1], **kwargs)
-    ae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
-           shuffle=True, verbose=verbose,
-           callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
+    ae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs, shuffle=True,
+           verbose=verbose, callbacks=[
+               EarlyStopping(monitor='loss',
+                             min_delta=0, patience=100, verbose=1,
+                             mode='auto'),
+               TensorBoard(log_dir='/tmp/autoencoder')])
     Xp = encoder.predict(Xs, verbose=False)
 
     if compute_error:
@@ -179,7 +182,10 @@ Ignoring last {} samples'.format(batch_size, X.shape[0], remove))
         print(vae.summary())
     vae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs,
             shuffle=True, verbose=verbose,
-            callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
+            callbacks=[
+                EarlyStopping(monitor='loss', min_delta=0,
+                              patience=100, verbose=0, mode='auto'),
+                TensorBoard(log_dir='/tmp/autoencoder')])
     Xp = encoder.predict(Xs, verbose=False, batch_size=batch_size)
 
     if compute_error:
