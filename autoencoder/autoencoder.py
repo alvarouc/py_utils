@@ -7,6 +7,7 @@ from keras.engine.topology import Layer
 from keras.callbacks import TensorBoard, EarlyStopping
 import numpy as np
 import warnings
+import pdb
 
 
 def build_vae(input_dim, ngpu=1,
@@ -78,7 +79,7 @@ def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
                       activations=['tanh', 'sigmoid'],
                       inits=['glorot_uniform', 'glorot_normal'],
                       optimizer='adam',
-                      drop=0.1, l2=1e-5,
+                      l2=1e-5,
                       loss='mse'):
 
     input_row = Input(shape=(input_dim,))
@@ -87,31 +88,26 @@ def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
         if n == 0:
             encoded = Dense(layer_dim, activation=activations[0],
                             kernel_initializer=inits[0])(input_row)
-            if drop > 0:
-                encoded = Dropout(drop)(encoded)
         elif n < (len(layers_dim) - 1):
             encoded = Dense(layer_dim, activation=activations[0],
                             kernel_initializer=inits[0])(encoded)
-            if drop > 0:
-                encoded = Dropout(drop)(encoded)
         else:
             encoded = Dense(layer_dim, activation=activations[0],
                             activity_regularizer=regularizers.l2(l2),
                             kernel_initializer=inits[0])(encoded)
 
     encoder = Model(input_row, encoded)
+    # create a placeholder for an encoded (n-dimensional) input
+    encoded_input = Input(shape=(layers_dim[-1],))
+
     for n, layer_dim in enumerate(reversed(layers_dim[:-1])):
         if n == 0:
             decoded = Dense(layer_dim, activation=activations[0],
                             kernel_initializer=inits[0])(encoded)
-            if drop > 0:
-                decoded = Dropout(drop)(decoded)
         else:
             decoded = Dense(layer_dim, activation=activations[0],
                             kernel_regularizer=regularizers.l2(l2),
                             kernel_initializer=inits[0])(decoded)
-            if drop > 0:
-                decoded = Dropout(drop)(decoded)
 
     decoded = Dense(input_dim, activation=activations[1],
                     kernel_regularizer=regularizers.l2(l2),
@@ -119,9 +115,18 @@ def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
 
     autoencoder = Model(input_row, decoded)
 
+    encoded_input = Input(shape=(layers_dim[-1],))
+    for n, layer_dim in enumerate(reversed(layers_dim)):
+        if n == 0:
+            deco = autoencoder.layers[-len(layers_dim)](encoded_input)
+        else:
+            deco = autoencoder.layers[-(len(layers_dim) - n)](deco)
+    # create the decoder model
+    decoder = Model(encoded_input, deco)
+
     autoencoder.compile(optimizer=optimizer, loss=loss)
 
-    return autoencoder, encoder, None
+    return autoencoder, encoder, decoder
 
 
 def standard(X):
