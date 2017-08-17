@@ -7,15 +7,16 @@ import pdb
 
 
 class BaseEncoder(BaseEstimator, TransformerMixin):
-    def __init__(self, batch_size=100, encoding_dim=2, *args, **kwargs):
+    def __init__(self, epochs=1000, batch_size=100, encoding_dim=2,
+                 *args, **kwargs):
         super(BaseEncoder).__init__(*args, **kwargs)
         self.batch_size = batch_size
         self.encoding_dim = encoding_dim
+        self.epochs = epochs
         self.sc = MinMaxScaler()
 
     def fit(self, X, epochs=100):
         self.Xs = self.sc.fit_transform(X)
-        self.epochs = epochs
         return self
 
     def transform(self, X, y=None, verbose=False):
