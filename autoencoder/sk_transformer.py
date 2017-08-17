@@ -16,7 +16,8 @@ class BaseEncoder(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        Xe = self.encoder.predict(X, verbose=False,
+        Xs = self.sc.transform(X)
+        Xe = self.encoder.predict(Xs, verbose=False,
                                   batch_size=self.batch_size)
         return Xe
 
@@ -39,15 +40,6 @@ class AutoEncoder(BaseEncoder):
 
     def fit(self, X, **kwargs):
         super(AutoEncoder, self).fit(X, **kwargs)
-        remove = X.shape[0] % self.batch_size
-        if remove != 0:
-            warnings.warn(
-                'Batch size ({}) is not multiple of the number of samples ({}),\
-                Ignoring last {} samples'.format(self.batch_size,
-                                                 self.Xs.shape[0],
-                                                 remove))
-            self.Xs = self.Xs[:-remove, :]
-
         self.ae, self.encoder, self.decoder =\
             build_autoencoder(self.Xs.shape[1],
                               layers_dim=self.layers_dim)
