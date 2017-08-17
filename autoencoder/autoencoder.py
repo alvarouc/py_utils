@@ -148,7 +148,7 @@ def run_ae(X, epochs=100, batch_size=128, verbose=False,
     ae.fit(Xs, Xs, batch_size=batch_size, epochs=epochs, shuffle=True,
            verbose=verbose, callbacks=[
                EarlyStopping(monitor='loss',
-                             min_delta=0, patience=100, verbose=1,
+                             min_delta=0, patience=50, verbose=1,
                              mode='auto'),
                TensorBoard(log_dir='/tmp/autoencoder')])
     Xp = encoder.predict(Xs, verbose=False)
@@ -184,7 +184,7 @@ Ignoring last {} samples'.format(batch_size, X.shape[0], remove))
             shuffle=True, verbose=verbose,
             callbacks=[
                 EarlyStopping(monitor='loss', min_delta=0,
-                              patience=100, verbose=0, mode='auto'),
+                              patience=50, verbose=0, mode='auto'),
                 TensorBoard(log_dir='/tmp/autoencoder')])
     Xp = encoder.predict(Xs, verbose=False, batch_size=batch_size)
 
