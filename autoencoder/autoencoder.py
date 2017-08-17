@@ -77,9 +77,9 @@ def build_vae(input_dim, ngpu=1,
 
 def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
                       activations=['tanh', 'sigmoid'],
-                      inits=['glorot_uniform', 'glorot_normal'],
+                      inits=['glorot_normal', 'glorot_normal'],
                       optimizer='adam',
-                      l2=1e-5,
+                      l2=0,
                       loss='mse'):
 
     input_row = Input(shape=(input_dim,))
