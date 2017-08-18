@@ -8,27 +8,28 @@ import pdb
 
 class BaseEncoder(BaseEstimator, TransformerMixin):
     def __init__(self, epochs=1000, batch_size=100, encoding_dim=2,
-                 optimizer='adamax',
+                 optimizer='adamax', verbose=False,
                  *args, **kwargs):
         super(BaseEncoder).__init__(*args, **kwargs)
         self.batch_size = batch_size
         self.encoding_dim = encoding_dim
         self.epochs = epochs
         self.optimizer = optimizer
+        self.verbose = verbose
         self.sc = MinMaxScaler()
 
     def fit(self, X, epochs=100):
         self.Xs = self.sc.fit_transform(X)
         return self
 
-    def transform(self, X, y=None, verbose=False):
+    def transform(self, X, y=None):
         Xs = self.sc.transform(X)
-        Xe = self.encoder.predict(Xs, verbose=verbose,
+        Xe = self.encoder.predict(Xs, verbose=self.verbose,
                                   batch_size=self.batch_size)
         return Xe
 
     def inverse_transform(self, X):
-        Xp = self.decoder.predict(X, verbose=False,
+        Xp = self.decoder.predict(X, verbose=self.verbose,
                                   batch_size=self.batch_size)
         Xr = self.sc.inverse_transform(Xp)
         return Xr
@@ -44,7 +45,7 @@ class AutoEncoder(BaseEncoder):
         self.layers_dim = layers_dim
         self.layers_dim.append(self.encoding_dim)
 
-    def fit(self, X, verbose=True, **kwargs):
+    def fit(self, X, **kwargs):
         super(AutoEncoder, self).fit(X, **kwargs)
         self.ae, self.encoder, self.decoder =\
             build_autoencoder(self.Xs.shape[1],
@@ -53,7 +54,7 @@ class AutoEncoder(BaseEncoder):
         self.ae.fit(self.Xs, self.Xs,
                     batch_size=self.batch_size,
                     epochs=self.epochs,
-                    shuffle=True, verbose=verbose)
+                    shuffle=True, verbose=self.verbose)
         return self
 
 
