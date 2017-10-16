@@ -10,7 +10,7 @@ import warnings
 import pdb
 
 
-def build_vae(input_dim, ngpu=1,
+def build_vae(input_dim,
               latent_dim=100,
               encoding_dim=10,
               activations=['relu', 'sigmoid'],
@@ -75,7 +75,7 @@ def build_vae(input_dim, ngpu=1,
     return vae, encoder, decoder
 
 
-def build_autoencoder(input_dim, ngpu=1, layers_dim=[100, 10, 10],
+def build_autoencoder(input_dim, layers_dim=[100, 10, 10],
                       activations=['tanh', 'sigmoid'],
                       inits=['glorot_normal', 'glorot_normal'],
                       optimizer='adam',
