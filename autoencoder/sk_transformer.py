@@ -1,9 +1,6 @@
-import warnings
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_squared_error as mse
 from .autoencoder import build_autoencoder, build_vae
-import pdb
 
 
 class BaseEncoder(BaseEstimator, TransformerMixin):
