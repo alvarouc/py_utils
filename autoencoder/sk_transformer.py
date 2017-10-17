@@ -1,5 +1,5 @@
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from .autoencoder import build_autoencoder, build_vae
 
 
@@ -13,7 +13,7 @@ class BaseEncoder(BaseEstimator, TransformerMixin):
         self.epochs = epochs
         self.optimizer = optimizer
         self.verbose = verbose
-        self.sc = StandardScaler()
+        self.sc = MinMaxScaler()
 
     def fit(self, X, y=None):
         self.Xs = self.sc.fit_transform(X)
