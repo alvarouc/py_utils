@@ -39,8 +39,7 @@ class AutoEncoder(BaseEncoder):
     def __init__(self, layers_dim=[100, 10],
                  *args, **kwargs):
         super(AutoEncoder, self).__init__(*args, **kwargs)
-        self.layers_dim = layers_dim
-        self.layers_dim.append(self.encoding_dim)
+        self.layers_dim = layers_dim + self.encoding_dim
 
     def fit(self, X, y=None):
         super(AutoEncoder, self).fit(X)
