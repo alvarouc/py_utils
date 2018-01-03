@@ -1,6 +1,7 @@
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from .autoencoder import build_autoencoder, build_vae
+from keras.callbacks import EarlyStopping
 
 
 class BaseEncoder(BaseEstimator, TransformerMixin):
@@ -47,10 +48,13 @@ class AutoEncoder(BaseEncoder):
             build_autoencoder(self.Xs.shape[1],
                               layers_dim=self.layers_dim,
                               optimizer=self.optimizer)
-        self.ae.fit(self.Xs, self.Xs,
-                    batch_size=self.batch_size,
-                    epochs=self.epochs,
-                    shuffle=True, verbose=self.verbose)
+        self.ae.fit(self.Xs, self.Xs, batch_size=self.batch_size,
+                    epochs=self.epochs, shuffle=True,
+                    verbose=self.verbose, validation_split=0.1,
+                    callbacks=[EarlyStopping(monitor='val_loss',
+                                             min_delta=0, patience=50, verbose=1,
+                                             mode='auto'), ])
+
         return self
 
 
