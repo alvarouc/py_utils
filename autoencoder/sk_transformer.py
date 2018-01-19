@@ -6,6 +6,8 @@ from keras.callbacks import EarlyStopping
 
 class BaseEncoder(BaseEstimator, TransformerMixin):
     def __init__(self, epochs=1000, batch_size=100, encoding_dim=2,
+                 patience=10, scaler=StandardScaler(),
+                 val_split=0.1,
                  optimizer='adam', verbose=False,
                  *args, **kwargs):
         super(BaseEncoder).__init__(*args, **kwargs)
@@ -14,7 +16,9 @@ class BaseEncoder(BaseEstimator, TransformerMixin):
         self.epochs = epochs
         self.optimizer = optimizer
         self.verbose = verbose
-        self.sc = MinMaxScaler()
+        self.sc = scaler
+        self.patience = patience
+        self.val_split = val_split
 
     def fit(self, X, y=None):
         self.Xs = self.sc.fit_transform(X)
@@ -49,10 +53,10 @@ class AutoEncoder(BaseEncoder):
                               layers_dim=self.layers_dim,
                               optimizer=self.optimizer)
         self.ae.fit(self.Xs, self.Xs, batch_size=self.batch_size,
-                    epochs=self.epochs, shuffle=True,
-                    verbose=self.verbose, validation_split=0.1,
+                    epochs=self.epochs, shuffle=False,
+                    verbose=self.verbose, validation_split=self.val_split,
                     callbacks=[EarlyStopping(monitor='val_loss',
-                                             min_delta=0, patience=50, verbose=1,
+                                             min_delta=0, patience=self.patience, verbose=1,
                                              mode='auto'), ])
 
         return self
