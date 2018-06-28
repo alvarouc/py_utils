@@ -1,5 +1,5 @@
 import logging
-
+import os
 
 class ProgressConsoleHandler(logging.StreamHandler):
     """
@@ -29,7 +29,14 @@ class ProgressConsoleHandler(logging.StreamHandler):
             self.handleError(record)
 
 
-def make_logger(name='', path='/tmp/', level='INFO'):
+
+def make_logger(name='', path=None, level='INFO'):
+
+    if path is None:
+        path = os.path.expanduser("~/.DISIML_logs/")
+    if not os.path.exists(path):
+        os.makedirs(path)
+
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(name)
