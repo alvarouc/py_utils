@@ -1,5 +1,5 @@
 import logging
-
+import os
 
 class ProgressConsoleHandler(logging.StreamHandler):
     """
@@ -29,11 +29,36 @@ class ProgressConsoleHandler(logging.StreamHandler):
             self.handleError(record)
 
 
-def make_logger(name='', path='/tmp/', level='INFO'):
+
+def make_logger(name='', path=None, level='INFO'):
+'''
+Make a logger object that outputs messages to
+a file and to STDOUT.
+
+The file format is '<path>/<name>.log'.
+
+Arguments:
+    name - The name of the logger and the name of the file. 
+           Default: 'root' (the root logger of python)
+    path - The name of the path to put the logfiles in.
+           Default: '~/.DISIML_logs'
+    level - The minimum level at which to log. Default: 'INFO'
+
+Returns:
+    a python logging object with the desired parameters.
+'''
+    if path is None:
+        path = os.path.expanduser("~/.DISIML_logs/")
+    if not os.path.exists(path):
+        os.makedirs(path)
+
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(name)
-    fh = logging.FileHandler(path + name + '.log')
+    if not name:
+        fh = logging.FileHandler(path + 'root.log')
+    else:
+        fh = logging.FileHandler(path + name + '.log')
 
     fh.setFormatter(formatter)
     ch = logging.StreamHandler()
