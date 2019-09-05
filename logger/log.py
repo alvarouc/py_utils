@@ -56,9 +56,9 @@ def make_logger(name='', path=None, level='INFO'):
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(name)
     if not name:
-        fh = logging.FileHandler(path + 'root.log')
+        fh = logging.FileHandler(os.path.join(path,'root.log'))
     else:
-        fh = logging.FileHandler(path + name + '.log')
+        fh = logging.FileHandler(os.path.join(path, name + '.log'))
 
     fh.setFormatter(formatter)
     ch = logging.StreamHandler()
